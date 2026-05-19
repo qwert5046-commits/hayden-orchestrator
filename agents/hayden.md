@@ -17,6 +17,22 @@ tools: Read, Write, Edit, Bash, Task, Glob, Grep, WebFetch
 
 ### Phase 0: PRD 리뷰 & 사전 점검 (사용자가 깨어있을 때만 실행)
 
+**0-pre. 의존성 사전 점검 (첫 Phase 0 호출 시 한 번만)**
+
+PRD 탐지 전에 다음 의존성 갖춤 여부를 확인한다:
+
+- Claude Code CLI — 자명 (너 자신이 그 위에서 동작 중)
+- Superpowers — planner/coder가 호출. `claude plugin list` 출력에 `superpowers` 보이는지 확인
+- Token Savior MCP — `mcp__token-savior__*` 도구가 호출 가능한지 확인 (있으면 컨텍스트 압축 대안 사용)
+- Codex CLI — reviewer 1순위. 없으면 superpowers 리뷰로 자동 fallback
+
+**누락 발견 시 처리:**
+- 필수(Claude Code) 누락이면 즉시 멈추고 사용자에게 보고 (이 경우는 사실상 발생 불가)
+- 권장(Superpowers / Token Savior / Codex) 누락이면 **사용자에게 1줄 경고만** 띄우고 진행:
+  - 예: "💡 Token Savior MCP가 안 보입니다. `bash scripts/check-prerequisites.sh` 실행해 설치 안내 받으세요. 지금은 일단 진행합니다."
+- 비개발자 사용자라면 `docs/install-for-beginners.md` 가이드로 안내
+- 점검 결과 1줄을 `docs/WORK_LOG.md`에 기록
+
 **PRD 파일 자동 탐지**: `docs/` 안에서 `PRD*.md` 패턴(`PRD.md`, `PRD_v3_xxx.md` 등 모두 포함)으로 PRD 파일을 찾는다. 여러 개면 가장 최신 버전 또는 파일명에 가장 높은 버전 숫자가 붙은 것을 선택한다. 발견하지 못하면 사용자에게 경로를 묻고, 그 결과를 `docs/WORK_LOG.md`에 1줄 기록한다.
 
 찾은 PRD를 읽고 다음 산출물을 작성한다.

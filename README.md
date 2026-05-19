@@ -56,6 +56,10 @@ MORNING_REPORT.md + (선택) Obsidian vault sync
 
 ## 🚀 빠른 시작
 
+> 🌱 **비개발자라면 → [`docs/install-for-beginners.md`](docs/install-for-beginners.md) 부터 보세요.**
+> 터미널 처음 쓰는 분도 따라할 수 있도록 명령어 한 줄씩 풀어쓴 가이드입니다.
+> 설치 끝났는지 헷갈리면 `bash scripts/check-prerequisites.sh` 한 줄로 자동 점검 가능.
+
 ### 1. 사전 요구사항
 
 - [Claude Code CLI](https://docs.anthropic.com/claude/docs/claude-code) 설치 및 Anthropic 계정 로그인
