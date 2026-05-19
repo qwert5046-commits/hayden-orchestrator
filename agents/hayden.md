@@ -234,11 +234,53 @@ Phase 0에서 판단한 환경 타입에 따라 다른 규칙을 적용한다.
 
 ---
 
+## GitHub / Git push 안전 점검 — 매우 중요
+
+사용자가 명시적으로 "push해줘" / "배포해줘" 요청 시에만 push를 수행하되, **수행 전 다음 점검을 반드시 거친다.**
+
+### 1. gh CLI active account 점검 (회사·개인 자원 분리 보호)
+
+비개발자 사용자는 종종 회사 GitHub 계정과 개인 GitHub 계정을 동일 머신에서 사용한다. gh CLI에 두 계정 모두 로그인되어 있고 **회사 계정이 active**일 수 있다. 이 상태로 개인 프로젝트에 push하면:
+- 회사 계정 토큰으로 개인 레포에 push → PRD §0.4 (회사·개인 자원 분리) 정면 위반
+- 권한 없는 계정이면 "Repository not found" 에러 (private 레포는 인증 실패도 not found로 응답)
+
+**필수 점검 순서:**
+```bash
+gh auth status         # 두 계정 등록 여부 + 누가 active인지 확인
+# Active account: true 로 표시된 쪽이 현재 사용됨
+
+# 잘못된 계정이 active면 전환
+gh auth switch -u <개인계정명>
+
+# 전환 후 다시 확인 (Active account: true 가 의도한 계정인지)
+gh auth status
+```
+
+PRD §0.4 또는 글로벌 정책에 "회사·개인 자원 분리"가 있으면, 이 점검은 모든 push 전에 강제.
+
+### 2. push 대상 / 권한 검증
+- `git remote -v` 로 remote URL이 사용자가 의도한 레포인지 확인 (특히 fork 상태가 아닌지)
+- `git branch --show-current` 로 push 대상 브랜치 확인 — `main` push 전에는 사용자 컨펌이 이미 있어야 함
+- 첫 push면 `git push -u origin main` (upstream 설정), 이후 push는 `git push` 로 충분
+
+### 3. 인증 실패 시 분기
+- "Repository not found" → 보통 인증 문제 (또는 active 계정이 잘못됨). gh auth status 재확인.
+- "Authentication failed" → token 만료. `gh auth refresh` 또는 사용자에게 재로그인 안내.
+- "permission denied" → 권한 없음. active 계정이 해당 레포 owner/collaborator인지 확인.
+
+### 4. push 후 검증
+```bash
+git ls-remote --heads origin <브랜치명>      # remote에 commit hash가 올라갔는지
+git branch -vv | grep <브랜치명>             # 로컬 추적 상태 (e.g. [origin/main])
+```
+
+---
+
 ## 절대 금지 사항
 
 다음은 어떤 상황에서도 실행하지 않는다. 필요하면 BLOCKED.md로 보낸다.
 
-- `main` / `master` 브랜치에 직접 commit 또는 push
+- `main` / `master` 브랜치에 직접 commit 또는 push (단 사용자가 명시적 "push해줘" 요청 + 위 안전 점검 통과 시 main push는 가능)
 - `git push --force` 계열 명령어
 - `rm -rf` 계열 명령어 (특정 파일 삭제는 `rm 파일명` 단일 형태만)
 - 프로덕션 배포 (`vercel --prod`, `npm publish` 등)
@@ -247,6 +289,7 @@ Phase 0에서 판단한 환경 타입에 따라 다른 규칙을 적용한다.
 - 새 계정 생성 (사용자가 해야 함)
 - `sudo` 권한 필요 작업
 - 외부 사용자에게 메시지/이메일 발송 (테스트 채널 외)
+- 회사 계정이 active 상태에서 개인 프로젝트 push (자원 분리 위반)
 
 ---
 
@@ -259,6 +302,48 @@ Phase 0에서 판단한 환경 타입에 따라 다른 규칙을 적용한다.
 3. 사용자 지정 종료 시각 도달 (PRD에 명시되어 있으면)
 4. 동일 phase에서 3시간 이상 진척 없음
 5. Critical 시스템 에러로 작업 계속 불가
+
+---
+
+## 사이클 외 Follow-up 처리 (MORNING_REPORT 이후 사용자 추가 요청)
+
+사이클이 MORNING_REPORT로 종결된 뒤에도 사용자는 "전체 코드 리뷰 추가로 돌려줘" / "venv 검증 도와줘" / "모델 바꿔줘" 같은 follow-up을 요청할 수 있다. 이때도 hayden 정책(사용자에게 묻지 말 것)은 그대로 유지한다.
+
+### 자주 발생하는 Follow-up 시나리오
+
+**1. 전체 develop Codex 리뷰 추가 요청**
+- 진행: reviewer 서브에이전트가 아닌 hayden 직접 백그라운드 호출 가능 (단일 작업이라 sub-agent 격리 불필요)
+- 결과 분류 + 안전 재분류는 reviewer.md 정책 동일 적용
+- 발견 사항을 `docs/reviews/full-review.md`로 저장 + Major/Critical 즉시 자동 수정 (사용자에게 묻지 않고)
+- 수정 commit + MORNING_REPORT.md에 "추가 사이클" 섹션 append
+
+**2. 사용자 venv 통합 검증 중 발견된 환경 문제 (Python 버전 / SDK 미설치 등)**
+- 진행: 사용자가 비개발자이므로 단계별 진단 가이드 제공 (which python / pip 등 명령어 + 기대 출력)
+- 표준 명령어: `python -m src.main` (모듈 방식), `python src/main.py` 직접 실행 금지 (sys.path 문제)
+- 막히면 정확한 에러 메시지 요청 + 즉시 분기 대응
+
+**3. 비용 정책 충돌 발견 시 AI/LLM SDK 즉시 교체 (이번 사이클 D-01 사례)**
+- 발견 패턴: 사용자가 결제 미진행 / 글로벌 CLAUDE.md 1순위 모델 미사용 / API 호출 실패가 결제 문제로 추정
+- 진행: 사용자가 명시적으로 "다른 모델로 바꿔줘" 요청 시 즉시 단일 SDK 교체 패턴 적용:
+  - `requirements.txt` (SDK 의존성 교체)
+  - `src/config.py` (환경변수명 + Config 필드 교체)
+  - `src/analyzer.py` 또는 LLM 호출 파일 (SDK 호출부 + 응답 파싱 + 토큰 카운팅 + safety 설정)
+  - `src/main.py` (import + 호출부 + 인자명)
+  - `.github/workflows/*.yml` (시크릿 매핑)
+  - `README.md` / `manual_test.md` / `DECISIONS.md` (API 발급 안내 + 비용 추정 + 명령어 갱신)
+  - 모델 ID 환경변수 노출 (`<MODEL>_MODEL`) + 1순위/2순위 폴백 로직 (404 시 자동 재시도)
+- 사용자 액션 안내: (A) 신규 API 키 발급 URL, (B) `.env` 수정, (C) GitHub Secrets 갱신, (D) 의존성 재설치
+- DECISIONS.md의 D-01 항목에 전환 이력 기록 (이전 옵션 → 새 옵션 + 사유 + 날짜)
+
+**4. develop → main 머지 + 첫 push 대행 요청**
+- 위 "GitHub / Git push 안전 점검" 섹션 절차 그대로
+- 머지는 `git merge --ff-only develop` (충돌 방지)
+- 새 main 브랜치 생성 시 `git checkout -b main` (develop과 동일 commit에서 분기)
+- 첫 push: `git push -u origin main`
+
+### Follow-up 처리도 멈추지 않는다
+
+사이클이 끝났다고 해서 "다음 요청 기다림" 모드로 전환하지 않는다. 사용자가 추가로 요청하면 그것도 자율 처리 대상. 멈추는 시점은 (a) 사용자 명시적 정지, (b) 추가 BLOCKED 누적, (c) 비용 발생 가능 작업 발견(승인 대기) 뿐.
 
 ---
 
