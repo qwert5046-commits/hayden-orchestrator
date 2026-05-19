@@ -162,15 +162,45 @@ critical / major 이슈는 `coder`에게 재호출해 수정한다.
 - 같은 phase에서 3시간 이상 작업 누적 또는 컨텍스트가 명백히 무거워졌을 때, 응답에 짧게 "지금 `/compact` 권장합니다. 핸드오프는 WORK_LOG에 다 있어 안전합니다" 한 줄 권유.
 - 사용자가 자고 있다면 권유 불가 → 자동 압축이 알아서 처리. 그래도 외부 파일 핸드오프는 필수.
 
-**보조 정책 — 코드 탐색 도구 활용:**
-- 전체 파일을 Read하기 전, 가능한 도구로 필요한 부분만 가져온다 (`Grep`, `Glob`, token-savior MCP 등이 있다면 활용)
-- 100줄 초과 파일은 Read offset/limit로 부분 읽기 우선
-- 같은 정보 반복 조회 금지. 이미 본 내용은 외부 파일에 요약
+**보조 정책 — Token Savior MCP 활용 (사용자 환경에 설치된 경우):**
 
-**보조 정책 — Token Savior 활용:**
-- 전체 파일을 Read하기 전, `find_symbol` / `get_function_source` / `get_change_impact` 등 token-savior 도구로 필요한 부분만 가져온다
-- 100줄 초과 파일은 Read offset/limit로 부분 읽기를 우선 시도
-- 같은 정보를 반복 조회하지 말고, 이미 본 내용은 외부 파일(WORK_LOG)에 요약해 둔다
+token-savior MCP가 user scope로 등록되어 있으면 아래 도구가 자동으로 inherit된다. 적극 활용한다.
+
+*세션 부팅 시 (`mcp__token-savior__memory_*` — 컨텍스트 복원):*
+
+- 새 사이클 시작 첫 응답에서 `mcp__token-savior__memory_index` 호출로 과거 결정·컨벤션·feedback 인덱스 확인
+- 사용자 요청이 과거 작업과 관련 있어 보이면 `memory_search` → `memory_get` 으로 필요한 메모리만 컨텍스트에 끌어온다 (3-layer)
+
+*코드 탐색 시 (Read 통째 대신 — 토큰 절약):*
+
+- 함수/클래스 위치 → `mcp__token-savior__find_symbol`
+- 함수 본문만 → `mcp__token-savior__get_function_source`
+- 파일 구조 파악 → `mcp__token-savior__get_symbol_overview`
+- 변경 영향도 → `mcp__token-savior__get_change_impact` 또는 `get_backward_slice`
+- 100줄 초과 파일을 통째로 Read하는 건 **"구조 파악이 목적이거나 100줄 이하"** 일 때만
+- 같은 정보를 반복 조회 금지. 이미 본 내용은 외부 파일(WORK_LOG)에 요약
+
+**컨텍스트 압축 대안 — `/compact` 직접 호출 불가 시 사용 (자율 루프 중 핵심):**
+
+사용자가 자고 있어 `/compact` 권유를 못 하고, 시스템 자동 압축이 아직 발동 안 했을 때 컨텍스트가 무거워지면 다음 3단 압축을 직접 수행한다:
+
+1. **현재 컨텍스트 → 외부 영구 저장** (사이클 간 생존):
+   - 핵심 결정·구조 변경 → `mcp__token-savior__memory_save_project`
+   - 사용자 교정·feedback → `mcp__token-savior__memory_save_feedback`
+   - 사용자 선호·역할 정보 → `mcp__token-savior__memory_save_user`
+   - 외부 시스템 참조 → `mcp__token-savior__memory_save_reference`
+   - 저장 후 같은 정보를 컨텍스트에 다시 끌어올 필요 없음 → 사실상 자가 압축
+
+2. **현재 phase 작업 상태 → WORK_LOG 핸드오프** (사이클 내 생존):
+   - 다음 phase가 이어받을 인터페이스·결정·커밋 해시·blocker를 `WORK_LOG.md`에 명시
+   - 자동 압축이 발동해도 이 파일은 살아남음
+
+3. **다음 응답 시 컨텍스트 재구성**:
+   - `mcp__token-savior__memory_index`로 영구 메모리 확인
+   - `WORK_LOG.md` Read로 사이클 내 상태 복원
+   - 즉 메모리·파일을 정상 컨텍스트 대용으로 활용
+
+**중요**: 이는 진짜 `/compact`가 아니라 "외부화를 통한 압축 효과"다. 메모리·파일을 정상 활용하면 컨텍스트 무게가 줄어드는 효과는 동일하다. 그래도 사용자가 깨어있을 때 컨텍스트가 무거우면 `/compact` 권유를 우선한다.
 
 ---
 
