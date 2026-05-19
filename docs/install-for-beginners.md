@@ -138,6 +138,19 @@ claude mcp list | grep token-savior
 
 `✓ Connected` 가 보이면 성공. 🎉
 
+### (선택) 자동화 hook 켜기 — 한 줄 요청으로 끝
+
+Token Savior가 더 적극 활용되도록 Claude Code에 자동 reminder hook 3개를 설치하면 좋아요:
+- 큰 파일 Read 시 "더 가벼운 도구 쓰지 그래?" 자동 안내
+- N턴마다 "이번 대화 중 기억할 거 있어?" 자동 점검
+- 세션 시작 시 과거 메모리 자동 조회 안내
+
+비개발자가 직접 손댈 필요 없이, **Claude Code 메인 세션에서 한 줄만** 요청하면 됩니다:
+
+> 💬 "token-savior 자동화 hook 설치해줘"
+
+Claude가 알아서 `~/.claude/scripts/` 에 스크립트 만들고 `~/.claude/settings.json` 의 hooks 섹션에 등록까지 처리해줘요. 설치 후 Claude Code 재시작 또는 `/hooks` 메뉴 한 번 열기로 활성화.
+
 ---
 
 ## 4️⃣ Codex CLI 설치 (권장 — 리뷰 품질 ↑)

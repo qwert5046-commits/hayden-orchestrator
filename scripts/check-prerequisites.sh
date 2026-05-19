@@ -96,8 +96,42 @@ else
 fi
 printf "%b\n" ""
 
-# 5) Hayden 에이전트 본체 ────────────────────────────────
-printf "%b\n" "5️⃣  Hayden 에이전트 정의 파일..."
+# 5) Token Savior 자동화 hooks (선택, 있으면 더 강력) ────
+printf "%b\n" "5️⃣  Token Savior 자동화 hooks..."
+settings="$HOME/.claude/settings.json"
+if [ -f "$settings" ] && command -v jq >/dev/null 2>&1; then
+  read_hook=$(jq -r '.hooks.PreToolUse[]?.hooks[]?.command // empty' "$settings" 2>/dev/null | grep -c "token-savior-read-warn" || true)
+  stop_hook=$(jq -r '.hooks.Stop[]?.hooks[]?.command // empty' "$settings" 2>/dev/null | grep -c "token-savior-memory-reminder" || true)
+  start_hook=$(jq -r '.hooks.SessionStart[]?.hooks[]?.command // empty' "$settings" 2>/dev/null | grep -c "token-savior-session-start" || true)
+  total=$((read_hook + stop_hook + start_hook))
+
+  if [ "$total" -eq 3 ]; then
+    printf "%b\n" "   ${GREEN}✓${NC} 3개 hook 모두 설치됨 (Read 경고 + Stop 메모리 reminder + SessionStart 부팅)"
+    ok=$((ok+1))
+  elif [ "$total" -gt 0 ]; then
+    printf "%b\n" "   ${YELLOW}⚠${NC} 일부 hook만 설치됨 ($total/3)"
+    [ "$read_hook" -eq 0 ] && printf "%b\n" "       ❌ PreToolUse on Read (token-savior-read-warn.sh)"
+    [ "$stop_hook" -eq 0 ] && printf "%b\n" "       ❌ Stop (token-savior-memory-reminder.sh)"
+    [ "$start_hook" -eq 0 ] && printf "%b\n" "       ❌ SessionStart (token-savior-session-start.sh)"
+    printf "%b\n" "   ${YELLOW}설치 안내:${NC} Claude Code 메인 세션에서"
+    printf "%b\n" "     ${BLUE}\"token-savior 자동화 hook 설치해줘\"${NC} 라고 요청하면"
+    printf "%b\n" "     Claude가 ~/.claude/scripts/ 에 스크립트 3개 만들고 settings.json hooks 등록까지 자동 처리합니다."
+    warn=$((warn+1))
+  else
+    printf "%b\n" "   ${YELLOW}⚠${NC} 자동화 hook 미설치 (선택 — 있으면 Claude가 token-savior 도구를 더 적극 활용)"
+    printf "%b\n" "   ${YELLOW}효과:${NC} 큰 파일 Read 시 자동 경고, N턴마다 메모리 저장 reminder, 세션 시작 시 memory_index 안내"
+    printf "%b\n" "   ${YELLOW}설치 안내:${NC} Claude Code 메인 세션에서"
+    printf "%b\n" "     ${BLUE}\"token-savior 자동화 hook 설치해줘\"${NC} 라고 요청하세요."
+    printf "%b\n" "     Claude가 ~/.claude/scripts/ 에 스크립트 3개 만들고 settings.json hooks 등록까지 자동 처리합니다."
+    warn=$((warn+1))
+  fi
+else
+  printf "%b\n" "   ${YELLOW}⊝${NC} 건너뜀 ($settings 또는 jq 없음 — Claude Code 먼저 설치 필요)"
+fi
+printf "\n"
+
+# 6) Hayden 에이전트 본체 ────────────────────────────────
+printf "%b\n" "6️⃣  Hayden 에이전트 정의 파일..."
 if [ -f "$HOME/.claude/agents/hayden.md" ]; then
   count=$(ls "$HOME/.claude/agents/"{hayden,planner,coder,reviewer}.md 2>/dev/null | wc -l | tr -d ' ')
   if [ "$count" = "4" ]; then
