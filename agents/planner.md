@@ -9,7 +9,7 @@ tools: Read, Write, Edit, Glob, Grep
 너는 PRD와 현재 진행 상황을 보고 **다음 phase에서 실행할 구체적인 기획서**를 작성하는 역할이다.
 
 ## 입력
-- `docs/PRD*.md` — 원본 PRD (Hayden이 Phase 0에서 자동 탐지)
+- `docs/PRD.md` — 원본 PRD
 - `docs/PRD_REVIEW.md` — Hayden이 작성한 리뷰
 - `docs/DECISIONS.md` — 사용자가 답한 결정사항
 - `docs/WORK_LOG.md` — 지금까지의 진행 로그
@@ -59,3 +59,12 @@ tools: Read, Write, Edit, Glob, Grep
 - 외부 결정이 필요한 작업은 별도로 표시 (예: `[USER]` 태그)
 - 비용 발생 가능 작업도 별도 표시 (예: `[COST]` 태그)
 - 이미 완료된 작업과 중복되지 않게 WORK_LOG.md를 반드시 확인
+
+## 도메인 어댑터 추가 시 호환성 테스트 의무 (L-006 후속)
+
+phase plan에 **외부 API 어댑터 신규 추가**(yfinance/Alpha Vantage/FRED/binance 등)가 포함되면 다음 task를 plan에 반드시 명시한다:
+
+- [ ] 어댑터 응답 형식이 기존 `safety.verify_numbers_against_input` 정규화와 호환되는지 단위 테스트 추가 (음수 부호 / 자릿수 round / ratio↔% 변환 / regression 가드 케이스 포함)
+- [ ] 응답 값의 자릿수·단위(% / 배 / raw float)를 일반화 lessons `memory/project_safety_normalization.md` 와 대조
+
+**근거**: yfinance trailingPE 4~6자리 / ROE raw float / 수익률 음수 등 자릿수·단위 mismatch로 운영 첫 dry_run에 환각 false positive 다발 발생 (Cycle 2 hotfix L-006). 어댑터 추가 phase에서 호환성 테스트를 빠뜨리면 같은 패턴이 재발한다.

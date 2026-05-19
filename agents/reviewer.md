@@ -61,9 +61,14 @@ echo "PID=$!"
 단순 exit code는 부족하다. 다음을 모두 확인:
 - 출력 파일 line count (`wc -l /tmp/phase-N-codex.txt`) — 50줄 미만이면 응답 실패로 간주
 - `^codex` 마커 다음에 본문이 있는지 (`grep -A1 "^codex$" /tmp/phase-N-codex.txt`)
-- 둘 다 통과해야 정상 응답
+- verdict 마커("P0|P1|P2|Critical|Major|Minor|Strengths|Issues|Assessment") 정규식 매칭 1건 이상
+- 셋 다 통과해야 정상 응답
 
 응답 실패 시 Step 5 fallback으로 자동 진행.
+
+**L-005 (Cycle 2 5회차 재발) 후속 — 누락 누적 시 분류**:
+- 동일 프로젝트에서 **연속 3회 이상 verdict 누락**: Codex backend 부분 장애로 분류. MORNING_REPORT에 "외부 재검증 미해결 (Codex backend N회 연속 누락)" 명시 보고하고 추가 자력 retry는 cache 낭비라 중단.
+- 라인 수가 비정상적으로 짧음(24초 내 종료 + 8,000줄 dump지만 추론 본문 없음) 같은 시그니처도 동일 패턴이므로 시간/라인비율도 함께 본다.
 
 ### 5. Fallback (Codex 실패 / 부재 시)
 - `superpowers:requesting-code-review` 스킬 호출 (Skill tool 가용 시)
@@ -71,6 +76,23 @@ echo "PID=$!"
 - 둘 다 실패하면 reviewer 본인이 직접 정독해 자체 리뷰 (최후 수단). 응답에 명시.
 
 ⚠️ **self-review의 한계**: 문법/패턴 이슈는 잡지만 도메인 quirk(라이브러리 표기 관습, deprecation, 안전 정책 우회 가능 코드)는 놓친다. 따라서 critical 영역(보안 경계, 인증/권한, 외부 API 신규 도입, 결제, DB 마이그레이션) 변경에 self-review만 통과하면 BLOCKED로 기록하고 Codex 인프라 복구 후 재검증을 강력 권고.
+
+#### self-review 도메인 체크포인트 패턴 (Cycle 2 D phase 적용 예시)
+
+self-review로 fallback할 때 정규식 grep + 정독으로 다음 도메인 체크포인트를 **명시적으로 표 형식으로 보고**한다. 보고 누락이 self-review의 가장 큰 실패 모드 (사용자가 어디까지 검증됐는지 알 수 없음).
+
+| CP | 항목 | 검증 방법 |
+|---|---|---|
+| CP1 | system_prompt 보존 (L-003) | `git diff <base>..HEAD -- prompts/ | wc -l` 이 0 |
+| CP2 | 단정 어구 금지 | "사세요/파세요/매수/매도" 단독 토큰 grep |
+| CP3 | XSS 가드 | Jinja2 autoescape / markdown2 safe_mode / `\|e` 필터 적용 확인 |
+| CP4 | secret 로그 미노출 | `str(exc)` 노출 위치 + secret 변수명 grep |
+| CP5 | graceful 폴백 | 옵션 환경변수 미설정 분기 + try/except 폴백 경로 read |
+| CP6 | 도메인 산식 정확성 | YoY/MoM/CPI/수익률 등 산식 한 줄씩 정독 |
+| CP7 | rate-limit 가드 | 외부 API 호출 위치에 sleep/retry 정책 확인 |
+| CP8 | 빈 데이터 graceful | archive 0건 / 시트 0행 / API 빈 응답 분기 |
+
+P0/P1 발견 + regression 가드 + 한계 명시(외부 재검증 권고)까지 함께 보고.
 
 ### 6. 결과 분류 + 안전 재분류
 
