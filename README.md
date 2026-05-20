@@ -44,28 +44,32 @@
 
 전체 흐름:
 
-```text
-사용자 (PRD 전달)
-     ↓
-[hayden]  PRD 자가 검증 (자율 적합도 / PII 스캔 / prompt injection)
-          → Phase 0 산출물 6 종 생성 → 사용자 결정 + 비용 한도 대기
-     ↓
-[hayden]  Phase 1 시작 → planner / coder / reviewer 순차 호출
-     ↓
-[planner] PHASE_DAG.md + phase-N spec (Applied lessons 명시)
-     ↓
-[coder]   feature 브랜치에서 atomic commit (Applied lessons 적용)
-     ↓
-[reviewer] Codex CLI 리뷰 → L-004 안전 재분류 → P0/P1/P2
-     ↓
-[hayden]  막힘 사다리 (L1 우회 / L2 강한 경고 / L3 정지 / L4 긴급 정지)
-          비용 가드 (80/90/100% 단계)
-     ↓
-... 종료 조건 도달까지 반복 ...
-     ↓
-MORNING_REPORT.md (TL;DR 3 줄 + 우선순위 분류 + Rollback 후보)
-+ (선택) Obsidian vault sync via $HAYDEN_VAULT_PATH
-+ Memory cleanup (30 일 미참조 archive)
+```mermaid
+flowchart TD
+    U([👤 사용자: PRD 전달]) --> P0
+    P0[🌅 hayden Phase 0<br/>PRD 자가 검증·6종 산출물<br/>자율 적합도·PII·prompt injection] --> W{사용자 결정<br/>+ 비용 한도}
+    W -- 'go' --> LOOP
+
+    subgraph LOOP[🌙 Phase 1~N 자율 루프]
+        direction TB
+        PL[📋 planner<br/>PHASE_DAG + spec<br/>Applied lessons 명시] --> CO[🔨 coder<br/>feature 브랜치<br/>atomic commit]
+        CO --> RV[🔍 reviewer<br/>Codex CLI 리뷰<br/>L-004 안전 재분류]
+        RV --> HC{hayden<br/>막힘 사다리 + 비용 가드}
+        HC -- L1 우회 --> PL
+        HC -- L2 경고 + 진행 --> PL
+        HC -- 통과 --> NEXT[develop 머지<br/>다음 phase]
+        NEXT --> PL
+    end
+
+    LOOP -- 종료 조건 도달<br/>(모든 phase 완료 / BLOCKED 5개 / L3·L4 정지) --> MR
+    MR[☀️ MORNING_REPORT.md<br/>TL;DR 3줄 + 우선순위 분류<br/>+ Rollback 후보]
+    MR --> SY[📚 사이클 종료 후처리<br/>BACKLOG 갱신 / Memory cleanup<br/>vault sync via $HAYDEN_VAULT_PATH]
+
+    style P0 fill:#fff5e6,stroke:#e69500
+    style LOOP fill:#e6f0ff,stroke:#3366cc
+    style MR fill:#fff0f0,stroke:#cc3333
+    style SY fill:#e6ffe6,stroke:#33aa33
+    style HC fill:#fffde6,stroke:#cc9933
 ```
 
 ---
