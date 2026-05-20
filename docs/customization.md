@@ -37,7 +37,7 @@
 ```yaml
 models:
   cheap:
-    name: gemini-3.1-flash-lite-preview
+    name: gemini-3.1-flash-lite
     cost_per_1m_input_usd: 0.25
     cost_per_1m_output_usd: 1.50
     valid_until: 2026-12     # 이 날짜 지나면 hayden 이 사용자에게 모델명 검증 요청

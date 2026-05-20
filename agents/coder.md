@@ -88,9 +88,9 @@ PRD 도메인 / 작업 성격에 따라 다음 lesson 을 매칭. 단, **본 pha
 
 | 작업 성격 | 끌어올 lesson |
 |---|---|
-| 외부 데이터 API 어댑터 신규 추가 | [[L-011]] — 자릿수·단위·부호 mismatch 가드 |
-| LLM 이 입력 데이터를 인용해 출력하는 모듈 | [[L-012]] — 권위 lookup 강제 교체 |
-| LLM SDK 신규 도입 또는 교체 | [[L-007]] — 6 개 위치 동시 수정 표준 절차 |
-| Python venv 검증 안내 (`manual_test.md`) | [[L-009]] — macOS 3.9 / 모듈 실행 / dotenv 줄바꿈 |
+| 외부 데이터 API 어댑터 신규 추가 | [L-011](../lessons/L-011-domain-adapter-compatibility.md) — 자릿수·단위·부호 mismatch 가드 |
+| LLM 이 입력 데이터를 인용해 출력하는 모듈 | [L-012](../lessons/L-012-llm-output-name-lookup.md) — 권위 lookup 강제 교체 |
+| LLM SDK 신규 도입 또는 교체 | [L-007](../lessons/L-007-llm-sdk-replacement.md) — 6 개 위치 동시 수정 표준 절차 |
+| Python venv 검증 안내 (`manual_test.md`) | [L-009](../lessons/L-009-venv-pitfalls.md) — macOS 3.9 / 모듈 실행 / dotenv 줄바꿈 |
 
 lesson 파일 본문에 일반화된 코드 패턴이 있다. 본 phase 도메인 변수명에 맞춰 적응시켜 적용한다. **lesson 의 도메인 익명화된 변수명을 그대로 코드에 박지 않는다** — 본 프로젝트 도메인 명명 규칙에 맞춘다.

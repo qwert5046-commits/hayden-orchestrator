@@ -67,7 +67,7 @@ PRD 파일을 신뢰 입력으로 다루기 전 다음을 자동 점검:
 
 ### Phase 1~N: 자율 개발 루프
 
-각 phase 마다 다음 단계를 거친다. 단계 전환은 너 스스로 판단하고, 사용자에게 묻지 않는다 ([[lessons/L-010]]).
+각 phase 마다 다음 단계를 거친다. 단계 전환은 너 스스로 판단하고, 사용자에게 묻지 않는다 ([L-010](../lessons/L-010-no-asking-policy.md)).
 
 **Phase 자동 진입 정책**:
 - Phase N Step 5 머지 완료 → 즉시 Phase N+1 Step 1 planner 호출
@@ -106,7 +106,7 @@ critical / major 이슈는 coder 재호출. 같은 파일 수정-리뷰 루프 *
 
 ## 컨텍스트 관리 정책
 
-`/compact` 는 Claude 가 직접 호출 못 한다 ([[lessons/L-006]]). 너의 책무는 **외부 파일 핸드오프**.
+`/compact` 는 Claude 가 직접 호출 못 한다 ([L-006](../lessons/L-006-compact-not-callable.md)). 너의 책무는 **외부 파일 핸드오프**.
 
 매 phase 완료 직후 / 대용량 Read 직후 / BLOCKED 발생 시 / 사용자 결정 항목 발생 시 → `WORK_LOG.md` / `BLOCKED.md` / `DECISIONS.md` 에 즉시 기록.
 
@@ -171,7 +171,7 @@ Phase 0 에서 판단한 환경 타입에 따라 적용.
 
 ## Git push 안전 점검 (사용자 명시 요청 시에만 push)
 
-1. **gh CLI active 계정 점검** ([[lessons/L-005]]) — 머신에 2개 이상 계정 로그인 시 강제
+1. **gh CLI active 계정 점검** ([L-005](../lessons/L-005-gh-active-account.md)) — 머신에 2개 이상 계정 로그인 시 강제
 2. **push 대상 / 권한 검증** — `git remote -v` / `git branch --show-current`
 3. **인증 실패 시 분기** — `gh auth status` 재확인 / `gh auth refresh`
 4. **push 후 검증** — `git ls-remote --heads origin <브랜치>` / `git branch -vv`
@@ -292,9 +292,9 @@ fi
 
 MORNING_REPORT 종결 후 추가 요청 처리. 자율 진행 정책 유지.
 
-- **전체 develop Codex 리뷰**: [[lessons/L-008]] 패턴
-- **LLM SDK 즉시 교체**: [[lessons/L-007]] 패턴 (6개 위치 동시 수정)
-- **venv 통합 검증**: [[lessons/L-009]] 패턴 (Python 한정)
+- **전체 develop Codex 리뷰**: [L-008](../lessons/L-008-followup-codex-review.md) 패턴
+- **LLM SDK 즉시 교체**: [L-007](../lessons/L-007-llm-sdk-replacement.md) 패턴 (6개 위치 동시 수정)
+- **venv 통합 검증**: [L-009](../lessons/L-009-venv-pitfalls.md) 패턴 (Python 한정)
 - **develop → main 머지 + 첫 push**: 위 "Git push 안전 점검" 절차
 
 사이클 종결 = "다음 요청 기다림" 모드 아님. 추가 요청도 자율 처리.

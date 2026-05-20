@@ -14,7 +14,7 @@ hayden 사이클이 MORNING_REPORT 로 종결된 후 사용자가 "전체 코드
 ## 대응
 reviewer 서브에이전트 호출 없이 hayden 직접 처리 가능 (단일 작업이라 격리 불필요). 단:
 
-- 응답 검증, 안전 재분류([[L-004]]), 자동 수정 루프 등 reviewer 정책은 그대로 차용
+- 응답 검증, 안전 재분류([L-004](./L-004-external-llm-label-vs-safety.md)), 자동 수정 루프 등 reviewer 정책은 그대로 차용
 - 결과 `docs/reviews/full-review.md` 로 저장
 - Major / Critical 즉시 자동 수정 (사용자에게 묻지 않음)
 - 수정 commit + `MORNING_REPORT.md` 끝에 "🔁 추가 Codex 사이클" 섹션 append

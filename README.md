@@ -87,14 +87,14 @@ MORNING_REPORT.md (TL;DR 3 줄 + 우선순위 분류 + Rollback 후보)
 - 🟠 의 Token Savior 는 README 에서 "강력 권장" 으로 표기했지만 **실제 동작 흐름상 사실상 필수**입니다 (컨텍스트 압축 정책 핵심).
 - 🟡 의 Codex 가 없으면 reviewer 가 superpowers fallback 사용. 단 critical 영역(보안 / 인증 / DB / 결제) 변경은 BLOCKED 처리되니 critical 작업이 있는 PRD 에선 사실상 필요.
 
-### 2. 설치 (3 단계)
+### 2. 설치 (4 단계)
 
 ```bash
 # 1) 이 레포 clone
 git clone https://github.com/qwert5046-commits/hayden-orchestrator.git
 cd hayden-orchestrator
 
-# 2) agents 폴더 4 개 파일을 Claude Code agents 디렉토리에 복사
+# 2) agents 4 개 파일을 Claude Code agents 디렉토리에 복사
 #    글로벌 설치 (모든 프로젝트에서 사용):
 cp agents/*.md ~/.claude/agents/
 
@@ -102,9 +102,18 @@ cp agents/*.md ~/.claude/agents/
 mkdir -p .claude/agents
 cp agents/*.md .claude/agents/
 
-# 3) 사전 점검 (4 단 분류로 출력)
+# 3) 사용자 프로젝트에 런타임 자산 scaffold (lessons/, config/, COST_TRACKER)
+#    agents 본문이 이 자산들을 참조하므로 프로젝트마다 한 번 실행.
+#    현재 디렉토리에 scaffold:
+bash scripts/setup-project.sh
+#    또는 다른 프로젝트 경로 지정:
+bash scripts/setup-project.sh /path/to/my-project
+
+# 4) 사전 점검 (4 단 분류로 출력)
 bash scripts/check-prerequisites.sh
 ```
+
+> **왜 자산을 따로 scaffold 해야 하나요?** agents 4 개는 글로벌 한 곳에 있어도 동작하지만, `lessons/` `config/llm-routing.yml` `docs/COST_TRACKER.md` 는 **사용자 프로젝트마다 사이클에 따라 진화**합니다 (BACKLOG / 비용 누적 / 신규 lesson 등). 그래서 글로벌이 아니라 사용자 프로젝트에 깔립니다.
 
 ### 3. 첫 실행
 

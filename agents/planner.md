@@ -52,14 +52,16 @@ tools: Read, Write, Edit, Glob, Grep
 
 ### 3. lesson 적용 판단
 
-`lessons/README.md` 인덱스를 보고 본 phase 에 `applies_when` 이 매칭되는 lesson 을 골라 plan 상단에 명시:
+`lessons/README.md` 인덱스를 보고 본 phase 에 `applies_when` 이 매칭되는 lesson 을 골라 plan 상단에 명시. **반드시 마크다운 링크로 작성한다 — wikilink 금지 (Codex 리뷰 m1 fix).**
 
 ```markdown
 ## Applied lessons
-- [[L-XXX]] — <이 phase 에 적용되는 이유 한 줄>
+- [L-XXX](../../lessons/L-XXX-<slug>.md) — <이 phase 에 적용되는 이유 한 줄>
 ```
 
-매칭 lesson 이 없으면 "Applied lessons: none" 한 줄. 매칭 여부와 사유를 명시하는 것이 본 phase 의 안전 가드.
+- 위 `L-XXX` 와 `<slug>` 는 placeholder. 실제 작성 시 `lessons/README.md` 인덱스의 정확한 파일명으로 치환.
+- 예: `[L-007](../../lessons/L-007-llm-sdk-replacement.md)` — LLM SDK 교체 phase
+- 매칭 lesson 이 없으면 "Applied lessons: none" 한 줄. 매칭 여부와 사유를 명시하는 것이 본 phase 의 안전 가드.
 
 ### 4. plan 본문 형식
 
@@ -67,7 +69,8 @@ tools: Read, Write, Edit, Glob, Grep
 # Phase N 기획서
 
 ## Applied lessons
-- [[L-XXX]] — 사유
+- [L-XXX](../../lessons/L-XXX-<slug>.md) — 사유   <!-- placeholder: 실제 파일명으로 치환 -->
+- (없으면) Applied lessons: none
 
 ## 목표
 한 문장으로 이 phase 가 달성하려는 것

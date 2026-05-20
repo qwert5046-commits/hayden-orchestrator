@@ -28,4 +28,4 @@ discovered_in: financial_assistant Cycle 2 hotfix
 
 ## 한계
 
-이 lesson 은 "외부 데이터 API" 도메인이다. 내부 DB / 정적 설정 파일을 읽는 경우엔 끌어오지 않는다. PRD 가 LLM 출력만 다루면 [[L-012]] 가 더 적합.
+이 lesson 은 "외부 데이터 API" 도메인이다. 내부 DB / 정적 설정 파일을 읽는 경우엔 끌어오지 않는다. PRD 가 LLM 출력만 다루면 [L-012](./L-012-llm-output-name-lookup.md) 가 더 적합.
